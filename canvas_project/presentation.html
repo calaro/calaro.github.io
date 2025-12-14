@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Design Presentation</title>
+    <style>
+        :root {
+            --bg-color: #fffbf8;
+            --bg-gradient: linear-gradient(135deg, #fffbf8 0%, #fff0f0 100%);
+            --text-color: #5e4b4b;
+            --accent-color: #e59386;
+            --secondary-accent: #f8cdd6;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .presentation-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        /* Left Side: Text Content */
+        .content-side {
+            flex: 1;
+            max-width: 450px;
+            position: relative;
+            height: 300px;
+            display: flex;
+            align-items: center;
+        }
+
+        .text-block {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%) translateX(-20px);
+            width: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease-out;
+            pointer-events: none;
+        }
+
+        .text-block.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-50%) translateX(0);
+            pointer-events: auto;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: #998a8a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .concept-box {
+            background: transparent;
+            padding-left: 20px;
+            border-left: 2px solid var(--accent-color);
+        }
+
+        .concept-box p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin: 0;
+            color: #6d5c5c;
+        }
+
+        /* Right Side: Graphic (Macbook) */
+        .graphic-side {
+            flex: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        /* MacBook CSS Mockup - Silver Style */
+        .macbook {
+            width: 750px; /* Increased Size */
+            aspect-ratio: 16/10;
+            background: #d1d5da; /* Silver outer */
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(94, 75, 75, 0.2);
+            border: 1px solid #c0c4c8;
+            border-bottom: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Lid/Screen Bezel - Black glass */
+        .macbook::before {
+            content: '';
+            position: absolute;
+            top: 0.5%;
+            left: 0.5%;
+            right: 0.5%;
+            bottom: 0.5%;
+            background: #000;
+            border-radius: 16px 16px 0 0;
+            z-index: 1;
+        }
+
+        /* Screen Mask Container - Clips everything to the screen area */
+        .screen-mask {
+            position: absolute;
+            top: 2.5%; 
+            left: 1.8%; 
+            width: 96.4%;
+            height: 94%; 
+            z-index: 2;
+            border-radius: 4px;
+            overflow: hidden; /* Clips the header when it slides up */
+            background-color: #fff;
+        }
+
+        /* Sticky Header */
+        .sticky-header {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            width: 100%;
+            z-index: 20; /* Above the scrollable content */
+            transform: translateY(-100%);
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            padding-top: 0px; /* Closer to top */
+        }
+
+        .sticky-header.visible {
+            transform: translateY(0);
+        }
+
+        .sticky-header img {
+            width: 100%; 
+            height: auto;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.1));
+            transform: scale(1); /* Enlarge by 18% */
+            transform-origin: top center;
+        }
+
+        /* The Scrollable Content Area */
+        .screen-content {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        /* Hide scrollbar */
+        .screen-content::-webkit-scrollbar { width: 0px; background: transparent; }
+        .screen-content { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .screen-content img {
+            width: 100%;
+            display: block;
+        }
+
+        /* Camera Notch */
+        .camera {
+            position: absolute;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            z-index: 3;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+
+        /* Bottom Base */
+        .macbook::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: -5%;
+            width: 110%;
+            height: 18px;
+            background: linear-gradient(to bottom, #e2e4e6, #bec3c9);
+            border-radius: 0 0 20px 20px;
+            z-index: 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .macbook-logo {
+            position: absolute;
+            bottom: 6px;
+            color: #888;
+            font-size: 10px;
+            z-index: 3;
+            font-weight: 500;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* Scroll Hint */
+        .scroll-hint {
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-color);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            opacity: 0.6;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(-50%);}
+            40% {transform: translateY(-45%);}
+            60% {transform: translateY(-48%);}
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .presentation-container {
+                flex-direction: column;
+                gap: 20px;
+                padding: 20px;
+            }
+            .content-side {
+                max-width: 100%;
+                text-align: center;
+                height: 200px;
+                flex: 0 0 auto;
+            }
+            .text-block {
+                text-align: center;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+            .text-block.active {
+                transform: translate(-50%, -50%);
+            }
+            .concept-box {
+                border-left: none;
+                padding-left: 0;
+            }
+            .macbook {
+                width: 95%;
+            }
+            .scroll-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation-container">
+    
+    <!-- Left Side: Changing Text -->
+    <div class="content-side">
+        
+        <!-- Section 1 -->
+        <div class="text-block active" id="text-0">
+            <h2>01. Hero Section</h2>
+            <h1>沉浸式品牌主視覺</h1>
+            <div class="concept-box">
+                <p>
+
+                    滿版背景＋商品與 IP 角色，營造沈浸式聯名氛圍。<br/>
+                    視覺重心集中在標題與主 CTA，一眼看出本季主打。<br/>
+                    產品與角色擺位引導視線往中心聚焦，減少干擾資訊。<br/>
+
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="text-block" id="text-1">
+            <h2>02. About Us</h2>
+            <h1>異業合作與數據實力</h1>
+            <div class="concept-box">
+                <p>
+                    左側圓角圖引用 IP 角色互動，隱喻合作夥伴的價值。<br/>
+                    右側留白搭配分段文字，易讀性佳，適合作為第一個重點區。<br/>
+                    採用大字體凸顯關鍵數據，以直觀的數字說服力快速建立市場信賴感。<br/>
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="text-block" id="text-2">
+            <h2>03. Brand Portfolio</h2>
+            <h1>品牌陣容導覽</h1>
+            <div class="concept-box">
+                <p>
+                    不同 IP 專屬的橫向卡片，捲動時維持視覺節奏感。<br/>
+                    每列角色頭像＋一句情境標語，快速傳達 IP 風格。<br/>
+                    列表快速了解多元 IP，呈現各角色專區的明確入口。<br/>
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="text-block" id="text-3">
+            <h2>04. Collaboration</h2>
+            <h1>合作流程可視化</h1>
+            <div class="concept-box">
+                <p>
+                    將繁瑣的商業合作步驟轉化為四個清晰的模組。<br/>
+                    右側搭配湯姆貓與傑利鼠的大型插畫互動。<br/>
+                    利用動態構圖引導視覺流動，增加頁面的趣味性。<br/>
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 5 -->
+        <div class="text-block" id="text-4">
+            <h2>05. Services</h2>
+            <h1>服務項目列表設計</h1>
+            <div class="concept-box">
+                <p>
+
+                圓形 icon 搭配短句條列，1–2 秒即可讀完重點。<br/>
+                右側搭配顯眼的行動呼籲按鈕，提升資訊易讀性。<br/>
+                條列內容具延展性，未來新增制度也容易擴充。<br/>
+            </p>
+            </div>
+        </div>
+
+        <!-- Section 6 -->
+        <div class="text-block" id="text-5">
+            <h2>06. Case Studies</h2>
+            <h1>實例展示與立即聯繫</h1>
+            <div class="concept-box">
+                <p>
+                    大小不一圖片拼貼與上下輪播，提高視覺吸引力。<br/>
+                    結合平拍與實際使用情境，讓商品變成「生活畫面」。<br/>
+                    可直接連結社群，作為品牌 IG 內容延伸入口。<br/>
+
+                </p>
+            </div>
+        </div>
+
+        <!-- Section 7 -->
+        <div class="text-block" id="text-6">
+            <h2>07. Latest News</h2>
+            <h1>最新消息與頁尾導航</h1>
+            <div class="concept-box">
+                <p>
+                    三欄卡片設計，圖片 標題 日期層級清楚，快速掃讀。<br/>
+                    可加入「活動中／預告／已結束」標籤，時效性資訊。<br/>
+                    作為品牌動態與內容行銷（SEO）的重要容器。<br/>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Side: Interactive Macbook -->
+    <div class="graphic-side">
+        <div class="macbook">
+            <div class="camera"></div>
+            
+            <!-- Screen Mask Wrapper -->
+            <div class="screen-mask">
+                
+                <!-- Floating Header -->
+                <div class="sticky-header" id="stickyHeader">
+                    <img src="assets/11b5f8eb-6d1f-4d00-be03-6a875d432cee.png" alt="Sticky Header">
+                </div>
+
+                <!-- Scrollable Content -->
+                <div class="screen-content" id="macScreen">
+                    <img src="assets/53b656a8-3bf2-4cf6-80e7-bc542e9e76d2.jpeg" alt="Website Design">
+                </div>
+
+            </div>
+
+            <!-- <div class="macbook-logo">MacBook Pro</div> -->
+            <div class="scroll-hint">SCROLL &#8595;</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const screen = document.getElementById('macScreen');
+    const stickyHeader = document.getElementById('stickyHeader');
+    const textBlocks = document.querySelectorAll('.text-block');
+
+    // Define break points based on scroll percentage (0 to 1)
+    const breakPoints = [
+        0,      // Hero
+        0.14,   // About
+        0.28,   // Brands
+        0.46,   // Collab
+        0.60,   // Services
+        0.76,   // Cases
+        0.88    // News
+    ];
+
+    screen.addEventListener('scroll', () => {
+        const scrollTop = screen.scrollTop;
+        const maxScroll = screen.scrollHeight - screen.clientHeight;
+        const scrollFraction = scrollTop / maxScroll;
+
+        // Sticky Header Logic
+        // Show when scrolled past 150px
+        if (scrollTop > 150) {
+            stickyHeader.classList.add('visible');
+        } else {
+            stickyHeader.classList.remove('visible');
+        }
+
+        // Find which section is currently active
+        let activeIndex = 0;
+        for (let i = breakPoints.length - 1; i >= 0; i--) {
+            if (scrollFraction >= breakPoints[i] - 0.05) {
+                activeIndex = i;
+                break;
+            }
+        }
+
+        // Update classes
+        textBlocks.forEach((block, index) => {
+            if (index === activeIndex) {
+                block.classList.add('active');
+            } else {
+                block.classList.remove('active');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
